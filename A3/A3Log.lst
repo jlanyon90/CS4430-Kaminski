@@ -1,0 +1,1613 @@
+SQL> 
+SQL> start TheSetUp
+SQL> start DropTables
+SQL> DROP TABLE OrderDetails;
+
+Table dropped.
+
+SQL> DROP TABLE PurchaseOrder;
+
+Table dropped.
+
+SQL> DROP TABLE Member;
+
+Table dropped.
+
+SQL> DROP TABLE Club;
+
+Table dropped.
+
+SQL> DROP TABLE ReOrder;
+
+Table dropped.
+
+SQL> DROP TABLE OrderLog;
+
+Table dropped.
+
+SQL> DROP TABLE ErrorLog;
+
+Table dropped.
+
+SQL> DROP TABLE CustInvoice;
+
+Table dropped.
+
+SQL> DROP TABLE ProductOrder;
+
+Table dropped.
+
+SQL> DROP TABLE Product;
+
+Table dropped.
+
+SQL> DROP TABLE Supplier;
+
+Table dropped.
+
+SQL> DROP TABLE Customer;
+
+Table dropped.
+
+SQL> DROP TABLE Zipcode;
+
+Table dropped.
+
+SQL> SQL> start SchemaSetUp
+SQL> CREATE TABLE Zipcode  (
+  2  	     Zip integer PRIMARY KEY,
+  3  	     City varchar(32),
+  4  	     State char(2),
+  5  	     CONSTRAINT cus_zip CHECK(Zip > 0)
+  6  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Customer (
+  2  	     CustomerID integer PRIMARY KEY,
+  3  	     FirstName varchar(32) NOT NULL,
+  4  	     LastName varchar(32) NOT NULL,
+  5  	     Street varchar(32),
+  6  	     Phone integer,
+  7  	     Zip integer REFERENCES Zipcode(Zip)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Supplier (
+  2  	     SupplierID varchar(8) PRIMARY KEY,
+  3  	     Name varchar(32) NOT NULL,
+  4  	     Street varchar(32),
+  5  	     Phone integer,
+  6  	     Zip integer REFERENCES Zipcode(Zip)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Club (
+  2  	     ClubID integer PRIMARY KEY,
+  3  	     Name varchar(32) NOT NULL,
+  4  	     Street varchar(32),
+  5  	     Phone integer,
+  6  	     Zip integer REFERENCES Zipcode(Zip)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Member (
+  2  	     MemberID integer PRIMARY KEY,
+  3  	     MemberDate date,
+  4  	     Duration integer,
+  5  	     Amount integer,
+  6  	     PaymentType varchar(8),
+  7  	     ClubID integer REFERENCES Club(ClubID),
+  8  	     CustomerID integer REFERENCES Customer(CustomerID)
+  9  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE Product (
+  2  	     ProductID integer PRIMARY KEY,
+  3  	     ProductName varchar(32) NOT NULL,
+  4  	     QuanInStock integer,
+  5  	     ReorderPoint integer,
+  6  	     Price decimal(5,2),
+  7  	     SupplierID varchar(8) REFERENCES Supplier(SupplierID),
+  8  	     ReorderQuan integer
+  9  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE PurchaseOrder (
+  2  	     PONo varchar(8) PRIMARY KEY,
+  3  	     ProductID integer REFERENCES Product(ProductID),
+  4  	     PODate date
+  5  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE ProductOrder (
+  2  	     OrderID integer PRIMARY KEY,
+  3  	     OrderDate date,
+  4  	     ShipDate date,
+  5  	     PaymentType varchar(8) DEFAULT 'CC',
+  6  	     CustomerID integer REFERENCES Customer(CustomerID)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE TABLE OrderDetails (
+  2  	     OrderID integer REFERENCES ProductOrder(OrderID),
+  3  	     ProductID integer REFERENCES Product(ProductID),
+  4  	     Quantity integer,
+  5  	     CONSTRAINT cus_pk PRIMARY KEY(OrderID, ProductID)
+  6  );
+
+Table created.
+
+SQL> SQL> start OtherTablesViewsSetUp
+SQL> -- 1
+SQL> 
+SQL> CREATE TABLE ReOrder (
+  2  	 ProductID integer PRIMARY KEY REFERENCES Product(ProductID),
+  3  	 RequestDate DATE DEFAULT SYSDATE,
+  4  	 NormalQuan  CHAR DEFAULT 'T',
+  5  	 ReorderQuan INTEGER,
+  6  	 CONSTRAINT ReorQuan CHECK(ReorderQuan > 0)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW PhoneInfo AS Select Name, Phone From (
+  2  	 (Select FirstName || ' ' || LastName AS Name, Phone FROM Customer)
+  3  	 UNION
+  4  	 (Select Name, Phone FROM Club)
+  5  	 UNION
+  6  	 (Select Name, Phone FROM Supplier)
+  7  );
+
+View created.
+
+SQL> 
+SQL> -- 2
+SQL> 
+SQL> CREATE TABLE OrderLog (
+  2  	 OrderID INTEGER REFERENCES ProductOrder(OrderID),
+  3  	 OrderDateTime DATE,
+  4  	 CustomerID INTEGER REFERENCES Customer(CustomerID),
+  5  	 OrderTotalPrice DECIMAL(5,2),
+  6  	 CONSTRAINT order_log_comp_key PRIMARY KEY(OrderID, CustomerID)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW ProductStock AS (
+  2  	 SELECT ProductID, ProductName, QuanInStock FROM Product
+  3  );
+
+View created.
+
+SQL> 
+SQL> -- 3
+SQL> 
+SQL> CREATE TABLE ErrorLog (
+  2  	 OrderID INTEGER REFERENCES ProductOrder(OrderID),
+  3  	 OrderDateTime DATE,
+  4  	 CustomerID INTEGER REFERENCES Customer(CustomerID),
+  5  	 ProductID INTEGER REFERENCES Product(ProductID),
+  6  	 Quantity INTEGER,
+  7  	 ErrorMessage VARCHAR(64)
+  8  );
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW NewOrders AS (
+  2  	 SELECT * FROM ProductOrder WHERE OrderDate > TO_DATE('15-OCT-2015','DD-MON-YYYY')
+  3  );
+
+View created.
+
+SQL> 
+SQL> -- 4
+SQL> 
+SQL> CREATE TABLE CustInvoice (
+  2  	 InvoiceNo INTEGER PRIMARY KEY,
+  3  	 CustNo INTEGER NOT NULL REFERENCES CUSTOMER(CustomerID),
+  4  	 CustName VARCHAR(15),
+  5  	 Street VARCHAR(25),
+  6  	 Zip NUMBER(5,0)
+  7  );
+
+Table created.
+
+SQL> 
+SQL> CREATE OR REPLACE VIEW NewOrderDetails AS (
+  2  	 SELECT O.* FROM OrderDetails O, ProductOrder P WHERE P.OrderDate >= '15-OCT-2015'
+  3  );
+
+View created.
+
+SQL> SQL> start OrderProcessingDef
+SQL> CREATE OR REPLACE PACKAGE OrderProcessing
+  2  AS
+  3  	 INVALID_PRODUCT EXCEPTION;
+  4  	 NOT_ENOUGH_IN_STOCK EXCEPTION;
+  5  
+  6  	 PRAGMA EXCEPTION_INIT(INVALID_PRODUCT, -20001);
+  7  	 PRAGMA EXCEPTION_INIT(NOT_ENOUGH_IN_STOCK, -20002);
+  8  
+  9  	 PROCEDURE Do1Order (I_custnum IN Customer.CustomerID%type,
+ 10  			     I_prod1   IN Product.ProductID%type,
+ 11  			     I_quan1   IN OrderDetails.Quantity%type,
+ 12  			     I_prod2   IN Product.ProductID%type,
+ 13  			     I_quan2   IN OrderDetails.Quantity%type,
+ 14  			     I_paytype IN ProductOrder.PaymentType%type);
+ 15  END;
+ 16  /
+
+Package created.
+
+SQL> 
+SQL> CREATE OR REPLACE PACKAGE BODY OrderProcessing
+  2  AS
+  3  	 PROCEDURE CreateProductOrder (I_custnum  IN  Customer.CustomerID%type,
+  4  				       I_paytype  IN  ProductOrder.PaymentType%type,
+  5  				       O_ordernum OUT ProductOrder.OrderID%type)
+  6  	 AS
+  7  	 BEGIN
+  8  	     O_ordernum := OrderSEQ.NEXTVAL;
+  9  
+ 10  	     INSERT INTO ProductOrder (OrderID, CustomerID, OrderDate, ShipDate, PaymentType) VALUES (O_ordernum, I_custnum, SYSDATE, NULL, I_paytype);
+ 11  	 END;
+ 12  
+ 13  	 PROCEDURE CreateOrderDetail (I_ordernum IN ProductOrder.OrderID%type,
+ 14  				      I_prodnum  IN Product.ProductID%type,
+ 15  				      I_quan	 IN OrderDetails.Quantity%type)
+ 16  	 AS
+ 17  	     V_instock Product.QuanInStock%type;
+ 18  	 BEGIN
+ 19  	     SELECT QuanInStock INTO V_instock FROM Product WHERE ProductID = I_prodnum;
+ 20  
+ 21  	     IF V_instock < I_quan THEN
+ 22  		 RAISE_APPLICATION_ERROR(-20002, 'Insufficient quantity in stock.');
+ 23  	     END IF;
+ 24  
+ 25  	     INSERT INTO OrderDetails (OrderID, ProductID, Quantity) VALUES (I_ordernum, I_prodnum, I_quan);
+ 26  	 EXCEPTION
+ 27  	     WHEN NO_DATA_FOUND THEN
+ 28  		 RAISE_APPLICATION_ERROR(-20001, 'Bad product ' || I_prodnum);
+ 29  	 END;
+ 30  
+ 31  	 PROCEDURE CreateOrderLog (I_ordernum IN ErrorLog.OrderID%type,
+ 32  				   I_custnum   IN OrderLog.CustomerID%type,
+ 33  				   I_totalcost IN OrderLog.OrderTotalPrice%type)
+ 34  	 AS
+ 35  	 BEGIN
+ 36  	     INSERT INTO OrderLog (OrderID, OrderDateTime, CustomerID, OrderTotalPrice)
+ 37  		 VALUES (I_ordernum, SYSDATE, I_custnum, I_totalcost);
+ 38  	 END;
+ 39  
+ 40  	 PROCEDURE CreateErrorLog (I_ordernum IN ErrorLog.OrderID%type,
+ 41  				   I_custnum  IN ErrorLog.CustomerID%type,
+ 42  				   I_prodnum  IN ErrorLog.ProductID%type,
+ 43  				   I_quan     IN ErrorLog.Quantity%type,
+ 44  				   I_msg      IN ErrorLog.ErrorMessage%type)
+ 45  	 AS
+ 46  	 BEGIN
+ 47  	     INSERT INTO ErrorLog
+ 48  		 (OrderId, OrderDateTime, CustomerID, ProductID, Quantity, ErrorMessage)
+ 49  		     VALUES (I_ordernum, SYSDATE, I_custnum, I_prodnum, I_quan, I_msg);
+ 50  	 END;
+ 51  
+ 52  	 PROCEDURE Do1Order (I_custnum IN Customer.CustomerID%type,
+ 53  			     I_prod1   IN Product.ProductID%type,
+ 54  			     I_quan1   IN OrderDetails.Quantity%type,
+ 55  			     I_prod2   IN Product.ProductID%type,
+ 56  			     I_quan2   IN OrderDetails.Quantity%type,
+ 57  			     I_paytype IN ProductOrder.PaymentType%type)
+ 58  	 AS
+ 59  	     V_custnum	 Customer.CustomerID%type;
+ 60  	     V_ordernum  ProductOrder.OrderID%type;
+ 61  	     V_totalcost OrderLog.OrderTotalPrice%type;
+ 62  
+ 63  	     V_whichprod INTEGER;
+ 64  	 BEGIN
+ 65  	     OrderProcessing.CreateProductOrder(I_custnum, I_paytype, V_ordernum);
+ 66  	     COMMIT;
+ 67  
+ 68  	     SELECT CustomerID INTO V_custnum FROM Customer WHERE CustomerID = I_custnum;
+ 69  
+ 70  	     SELECT SUM(Price) INTO V_totalcost FROM Product WHERE ProductID = I_prod1 OR ProductID = I_prod2;
+ 71  
+ 72  	     OrderProcessing.CreateOrderLog(V_ordernum, I_custnum, V_totalcost);
+ 73  
+ 74  	     -- Assert that we're working with the first product
+ 75  	     V_whichprod := 1;
+ 76  
+ 77  	     OrderProcessing.CreateOrderDetail(V_ordernum, I_prod1, I_quan1);
+ 78  
+ 79  	     -- Assert that we're working with the second product
+ 80  	     V_whichprod := 2;
+ 81  
+ 82  	     OrderProcessing.CreateOrderDetail(V_ordernum, I_prod2, I_quan2);
+ 83  	 EXCEPTION
+ 84  	     WHEN NO_DATA_FOUND THEN
+ 85  		 OrderProcessing.CreateErrorLog(V_ordernum, NULL, NULL, NULL, 'Bad Customer ' || I_custnum);
+ 86  	     WHEN INVALID_PRODUCT THEN
+ 87  		 ROLLBACK;
+ 88  		 OrderProcessing.CreateErrorLog(V_ordernum, V_custnum, NULL, NULL, SUBSTR(SQLERRM, 11));
+ 89  	     WHEN NOT_ENOUGH_IN_STOCK THEN
+ 90  		 ROLLBACK;
+ 91  		 IF V_whichprod = 1 THEN
+ 92  		     OrderProcessing.CreateErrorLog(V_ordernum, V_custnum, I_prod1, I_quan1, SUBSTR(SQLERRM, 11));
+ 93  		 ELSE
+ 94  		     OrderProcessing.CreateErrorLog(V_ordernum, V_custnum, I_prod2, I_quan2, SUBSTR(SQLERRM, 11));
+ 95  		 END IF;
+ 96  	 END;
+ 97  END;
+ 98  /
+
+Package body created.
+
+SQL> SQL> start StartUpProcsDef
+SQL> CREATE OR REPLACE PROCEDURE StartUpFixAreaCode AS
+  2  	 CURSOR Cur_old_n IS
+  3  	     SELECT * FROM (
+  4  		 (SELECT TO_CHAR(CustomerID) AS ID, Phone, 'I' AS Type FROM Customer) UNION
+  5  		 (SELECT SupplierID AS ID, Phone, 'S' AS Type FROM Supplier) UNION
+  6  		 (SELECT TO_CHAR(ClubID) AS ID, Phone, 'C' AS Type FROM Club)
+  7  	     ) WHERE (Phone >= 4170000000 AND Phone < 4180000000) OR (Phone >= 7140000000 AND Phone < 7150000000);
+  8  
+  9  	 V_old_n_rec Cur_old_n%rowtype;
+ 10  	 V_new_n integer;
+ 11  BEGIN
+ 12  	 OPEN Cur_old_n;
+ 13  
+ 14  	 LOOP
+ 15  	     FETCH Cur_old_n INTO V_old_n_rec;
+ 16  	     EXIT WHEN Cur_old_n%notfound;
+ 17  
+ 18  	     IF V_old_n_rec.Phone < 7140000000 THEN
+ 19  		 V_new_n := V_old_n_rec.Phone + 270000000;
+ 20  	     ELSE
+ 21  		 V_new_n := V_old_n_rec.Phone - 1590000000;
+ 22  	     END IF;
+ 23  
+ 24  	     IF V_old_n_rec.Type = 'I' THEN
+ 25  		 UPDATE Customer SET Phone = V_new_n WHERE CustomerID = V_old_n_rec.ID;
+ 26  	     ELSIF V_old_n_rec.Type = 'S' THEN
+ 27  		 UPDATE Supplier SET Phone = V_new_n WHERE SupplierID = V_old_n_rec.ID;
+ 28  	     ELSE
+ 29  		 UPDATE Club SET Phone = V_new_n WHERE ClubID = V_old_n_rec.ID;
+ 30  	     END IF;
+ 31  	 END LOOP;
+ 32  
+ 33  	 CLOSE Cur_old_n;
+ 34  END;
+ 35  /
+
+Procedure created.
+
+SQL> 
+SQL> CREATE OR REPLACE PROCEDURE StartUpQuanCheck AS
+  2  	 CURSOR Cur_to_reorder IS
+  3  	     SELECT ProductID FROM Product WHERE QuanInStock < 10 OR Price < 5.00;
+  4  
+  5  	 V_product Cur_to_reorder%rowtype;
+  6  BEGIN
+  7  	 OPEN Cur_to_reorder;
+  8  
+  9  	 LOOP
+ 10  	     FETCH Cur_to_reorder INTO V_product;
+ 11  	     EXIT WHEN Cur_to_reorder%notfound;
+ 12  
+ 13  	     INSERT INTO ReOrder (ProductID, ReorderQuan) VALUES (V_product.ProductID, 5);
+ 14  	 END LOOP;
+ 15  
+ 16  	 CLOSE Cur_to_reorder;
+ 17  END;
+ 18  /
+
+Procedure created.
+
+SQL> SQL> start OrderTriggerDef
+SQL> CREATE OR REPLACE TRIGGER CheckQuan
+  2  	 AFTER UPDATE OF QuanInStock ON Product
+  3  	 FOR EACH ROW
+  4  	 WHEN (new.QuanInStock < old.ReorderPoint)
+  5  BEGIN
+  6  	 INSERT INTO ReOrder (ProductID, ReorderQuan) VALUES (:new.ProductID, :new.ReorderQuan);
+  7  END;
+  8  /
+
+Trigger created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER DoCustInvoice
+  2  	 AFTER INSERT ON ProductOrder
+  3  	 FOR EACH ROW
+  4  DECLARE
+  5  	 V_invoicenum CustInvoice.InvoiceNo%type;
+  6  BEGIN
+  7  	 V_invoicenum := InvoiceSEQ.NEXTVAL;
+  8  
+  9  	 INSERT INTO CustInvoice (InvoiceNo, CustNo, CustName, Street, Zip) (
+ 10  	     SELECT V_invoicenum AS InvoiceNo, CustomerID, FirstName || ' ' || LastName, Street, Zip FROM Customer WHERE CustomerID = :new.CustomerID
+ 11  	 );
+ 12  END;
+ 13  /
+
+Trigger created.
+
+SQL> 
+SQL> CREATE OR REPLACE TRIGGER DoPO
+  2  	 AFTER INSERT ON ReOrder
+  3  	 FOR EACH ROW
+  4  DECLARE
+  5  	 V_PONo PurchaseOrder.PONo%type;
+  6  BEGIN
+  7  	 V_PONo := 'PO' || PONoSEQ.NEXTVAL;
+  8  
+  9  	 INSERT INTO PurchaseOrder (PONo, ProductID, PODate) VALUES (V_PONo, :new.ProductID, :new.RequestDate);
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> SQL> SQL> 
+SQL> SELECT
+  2  	 SUBSTR(object_name, 0, 20) As "Name",
+  3  	 object_type AS "Type",
+  4  	 status AS "Status",
+  5  	 TO_CHAR(created, 'DD-MON-YYYY HH24:MI:SS') AS "Created"
+  6  FROM OBJ;
+
+Name
+--------------------------------------------------------------------------------
+Type                Status  Created
+------------------- ------- -----------------------------
+ORDERPROCESSING
+PACKAGE BODY        VALID   03-NOV-2015 17:52:09
+
+SYS_C0011351
+INDEX               VALID   04-NOV-2015 10:00:28
+
+PONOSEQ
+SEQUENCE            VALID   04-NOV-2015 09:55:07
+
+CREATEORDERDETAIL
+PROCEDURE           INVALID 03-NOV-2015 17:42:35
+
+CREATEPRODUCTORDER
+PROCEDURE           INVALID 03-NOV-2015 17:42:35
+
+ORDERPROCESSING
+PACKAGE             VALID   03-NOV-2015 17:42:32
+
+CHECKQUAN
+TRIGGER             VALID   04-NOV-2015 10:00:28
+
+DOPO
+TRIGGER             VALID   04-NOV-2015 10:00:28
+
+DOCUSTINVOICE
+TRIGGER             VALID   04-NOV-2015 10:00:28
+
+STARTUPQUANCHECK
+PROCEDURE           VALID   01-NOV-2015 11:33:58
+
+STARTUPAREACODEFIX
+PROCEDURE           INVALID 01-NOV-2015 11:03:18
+
+STARTUPCHECKQUAN
+PROCEDURE           INVALID 01-NOV-2015 09:36:58
+
+STARTUPFIXAREACODE
+PROCEDURE           VALID   01-NOV-2015 09:36:58
+
+NEWORDERDETAILS
+VIEW                VALID   01-NOV-2015 08:37:44
+
+INVOICESEQ
+SEQUENCE            VALID   04-NOV-2015 09:55:07
+
+ORDERSEQ
+SEQUENCE            VALID   04-NOV-2015 09:55:07
+
+NEWORDERS
+VIEW                VALID   01-NOV-2015 08:34:11
+
+CUSTINVOICE
+TABLE               VALID   04-NOV-2015 10:00:28
+
+ERRORLOG
+TABLE               VALID   04-NOV-2015 10:00:28
+
+ORDER_LOG_COMP_KEY
+INDEX               VALID   04-NOV-2015 10:00:28
+
+ORDERLOG
+TABLE               VALID   04-NOV-2015 10:00:28
+
+PRODUCTSTOCK
+VIEW                VALID   23-OCT-2015 16:02:29
+
+PHONEINFO
+VIEW                VALID   23-OCT-2015 16:02:29
+
+SYS_C0011342
+INDEX               VALID   04-NOV-2015 10:00:28
+
+REORDER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+CUS_PK
+INDEX               VALID   04-NOV-2015 10:00:28
+
+ORDERDETAILS
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011336
+INDEX               VALID   04-NOV-2015 10:00:28
+
+PRODUCTORDER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011334
+INDEX               VALID   04-NOV-2015 10:00:28
+
+PURCHASEORDER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011332
+INDEX               VALID   04-NOV-2015 10:00:28
+
+PRODUCT
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011328
+INDEX               VALID   04-NOV-2015 10:00:28
+
+MEMBER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011326
+INDEX               VALID   04-NOV-2015 10:00:28
+
+CLUB
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011323
+INDEX               VALID   04-NOV-2015 10:00:28
+
+SUPPLIER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011320
+INDEX               VALID   04-NOV-2015 10:00:28
+
+ZIPCODE
+TABLE               VALID   04-NOV-2015 10:00:28
+
+CUSTOMER
+TABLE               VALID   04-NOV-2015 10:00:28
+
+SYS_C0011317
+INDEX               VALID   04-NOV-2015 10:00:28
+
+
+43 rows selected.
+
+SQL> 
+SQL> SELECT text FROM user_source WHERE name = 'STARTUPAREACODEFIX' AND ROWNUM <= 10 ORDER BY line;
+
+TEXT
+--------------------------------------------------------------------------------
+PROCEDURE StartUpAreaCodeFix AS
+    CURSOR old_n IS
+        SELECT * FROM (
+            (SELECT TO_CHAR(CustomerID) AS ID, Phone, 'I' AS Type FROM Customer)
+ UNION
+
+            (SELECT SupplierID AS ID, Phone, 'S' AS Type FROM Supplier) UNION
+            (SELECT TO_CHAR(ClubID) AS ID, Phone, 'C' AS Type FROM Club)
+        ) WHERE (Phone >= 4170000000 AND Phone < 4180000000) OR (Phone >= 714000
+0000 AND Phone < 7150000000);
+
+
+    old_n_rec old_n%rowtype;
+    new_n integer;
+
+10 rows selected.
+
+SQL> SELECT text FROM user_source WHERE name = 'STARTUPQUANCHECK' AND ROWNUM <= 10 ORDER BY line;
+
+TEXT
+--------------------------------------------------------------------------------
+PROCEDURE StartUpQuanCheck AS
+    CURSOR Cur_to_reorder IS
+        SELECT ProductID FROM Product WHERE QuanInStock < 10 OR Price < 5.00;
+
+    V_product Cur_to_reorder%rowtype;
+BEGIN
+    OPEN Cur_to_reorder;
+
+    LOOP
+        FETCH Cur_to_reorder INTO V_product;
+
+10 rows selected.
+
+SQL> 
+SQL> start DoCleanStart
+SQL> delete from Club;
+
+0 rows deleted.
+
+SQL> delete from Supplier;
+
+0 rows deleted.
+
+SQL> delete from Customer;
+
+0 rows deleted.
+
+SQL> delete from Zipcode;
+
+0 rows deleted.
+
+SQL> delete from Member;
+
+0 rows deleted.
+
+SQL> delete from Product;
+
+0 rows deleted.
+
+SQL> delete from PurchaseOrder;
+
+0 rows deleted.
+
+SQL> delete from ProductOrder;
+
+0 rows deleted.
+
+SQL> delete from OrderDetails;
+
+0 rows deleted.
+
+SQL> start DataLoader
+SQL> INSERT INTO Zipcode VALUES (34342, 'Wichita',     'KS');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (65670, 'Branson',     'MO');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (66572, 'St. Charles', 'MO');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (13567, 'New York',    'NY');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (90006, 'Los Angelas', 'CA');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (60603, 'Chicago',     'IL');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (65807, 'Springfield', 'MO');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (63140, 'St. Louis',   'MO');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (64530, 'Kansas City', 'MO');
+
+1 row created.
+
+SQL> INSERT INTO Zipcode VALUES (65810, 'Springfield', 'MO');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Club VALUES (100, 'Hillside Mountain Club', '1 Winona St.',   '3163397676', 34342);
+
+1 row created.
+
+SQL> INSERT INTO Club VALUES (110, 'Branson Climbing Club',  '2 Sherwood Dr.', '4174485676', 65670);
+
+1 row created.
+
+SQL> INSERT INTO Club VALUES (120, 'Cherokee Rafting Club',  '44 Kent Ave.',   '3147780870', 66572);
+
+1 row created.
+
+SQL> INSERT INTO Club VALUES (130, 'White Plains Club',      '225 Tracy St.',  '2126678090', 13567);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Supplier VALUES ('S500', 'Hillside Ski',	 '2717 S Western Ave',	'7146654959', 90006);
+
+1 row created.
+
+SQL> INSERT INTO Supplier VALUES ('S510', 'Tiger Mountain',	 '2600 S Vermont Ave.', '7143327878', 90006);
+
+1 row created.
+
+SQL> INSERT INTO Supplier VALUES ('S520', 'Asha Outdoor',	 '44 S LaSalle St.',	'3125554678', 60603);
+
+1 row created.
+
+SQL> INSERT INTO Supplier VALUES ('S530', 'Sheraton Recreation', '225 Tracy St.',	'2128889569', 13567);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Customer VALUES (101, 'Jack',	 'Russell',  '25 North Madison Ave', '4178823434', 65807);
+
+1 row created.
+
+SQL> INSERT INTO Customer VALUES (102, 'Betty',  'Trumbell', '550 South Court Dr.',  '3125556670', 63140);
+
+1 row created.
+
+SQL> INSERT INTO Customer VALUES (103, 'Anil',	 'Kaul',     '400 South Circle St.', '4316667070', 64530);
+
+1 row created.
+
+SQL> INSERT INTO Customer VALUES (104, 'Tom',	 'Wiley',    '1500 North Grand St.', '4178825560', 65810);
+
+1 row created.
+
+SQL> INSERT INTO Customer VALUES (105, 'Sharon', 'Stone',    '200 West Wagner St.',  '4176668890', 65807);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Member VALUES (10010, '12-JUN-15', 4, 200, 'CC',    100, 101);
+
+1 row created.
+
+SQL> INSERT INTO Member VALUES (10020, '15-JUN-15', 2, 100, 'Check', 110, 102);
+
+1 row created.
+
+SQL> INSERT INTO Member VALUES (10030, '21-JUN-15', 5, 250, 'Check', 120, 103);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO Product VALUES (10010, 'Beginner''s Ski Boot',  20, 5,  9.75, 'S500', 25);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10011, 'Intermediate Ski Boot', 18, 5, 12.99, 'S500', 20);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10012, 'Pro Ski Boot', 	 21, 7, 15.49, 'S510', 25);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10013, 'Beginner''s Ski Pole',  15, 3, 25.49, 'S500', 20);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10014, 'Intermediate Ski Pole', 20, 3, 29.99, 'S520', 22);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10015, 'Pro Ski Pole', 	 21, 5, 34.99, 'S530', 25);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10016, 'Road Bicycle', 	 15, 4, 34.95, 'S520', 18);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10017, 'Mountain Bicycle',	 19, 4, 49.99, 'S520', 20);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10018, 'Tire Pump',		  8, 2,  7.99, 'S530', 10);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10019, 'Water Bottle', 	 25, 4,  2.49, 'S510', 25);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10020, 'Bicycle Tires',	 30, 5,  4.99, 'S500', 33);
+
+1 row created.
+
+SQL> INSERT INTO Product VALUES (10021, 'Bicycle Helmet',	 23, 6, 10.95, 'S510', 25);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO PurchaseOrder VALUES ('PO11', 10011, '25-MAY-15');
+
+1 row created.
+
+SQL> INSERT INTO PurchaseOrder VALUES ('PO12', 10015, '12-MAY-15');
+
+1 row created.
+
+SQL> INSERT INTO PurchaseOrder VALUES ('PO13', 10011, '25-JUN-15');
+
+1 row created.
+
+SQL> INSERT INTO PurchaseOrder VALUES ('PO14', 10018, '25-JUN-15');
+
+1 row created.
+
+SQL> INSERT INTO PurchaseOrder VALUES ('PO15', 10015, '10-JUL-15');
+
+1 row created.
+
+SQL> INSERT INTO PurchaseOrder VALUES ('PO16', 10019, '21-JUL-15');
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO ProductOrder VALUES (1001, '27-MAY-15', '01-JUN-15', 'CC',    102);
+
+1 row created.
+
+SQL> INSERT INTO ProductOrder VALUES (1002, '28-MAY-15', '02-JUN-15', 'CC',    103);
+
+1 row created.
+
+SQL> INSERT INTO ProductOrder VALUES (1003, '28-MAY-15', '03-JUN-15', 'Check', 104);
+
+1 row created.
+
+SQL> INSERT INTO ProductOrder VALUES (1004, '05-JUN-15', '10-JUN-15', 'CC',    105);
+
+1 row created.
+
+SQL> INSERT INTO ProductOrder VALUES (1005, '06-JUN-15', '08-JUN-15', 'Check', 103);
+
+1 row created.
+
+SQL> INSERT INTO ProductOrder VALUES (1006, '08-JUN-15', '12-JUN-15', 'CC',    104);
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO OrderDetails VALUES (1001, 10011, 2);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1001, 10015, 3);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1002, 10011, 5);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1002, 10016, 2);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1003, 10019, 5);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1004, 10018, 3);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1004, 10011, 1);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1004, 10019, 3);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1005, 10017, 1);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1005, 10019, 1);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1005, 10021, 1);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1006, 10012, 4);
+
+1 row created.
+
+SQL> INSERT INTO OrderDetails VALUES (1006, 10015, 2);
+
+1 row created.
+
+SQL> SQL> delete from ReOrder;
+
+0 rows deleted.
+
+SQL> delete from OrderLog;
+
+0 rows deleted.
+
+SQL> delete from ErrorLog;
+
+0 rows deleted.
+
+SQL> delete from CustInvoice;
+
+6 rows deleted.
+
+SQL> start StartSequences
+SQL> DROP SEQUENCE OrderSEQ;
+
+Sequence dropped.
+
+SQL> DROP SEQUENCE InvoiceSEQ;
+
+Sequence dropped.
+
+SQL> DROP SEQUENCE PONoSEQ;
+
+Sequence dropped.
+
+SQL> 
+SQL> CREATE SEQUENCE OrderSEQ START WITH 2001 INCREMENT BY 1;
+
+Sequence created.
+
+SQL> 
+SQL> CREATE SEQUENCE InvoiceSEQ START WITH 101 INCREMENT BY 1;
+
+Sequence created.
+
+SQL> 
+SQL> CREATE SEQUENCE PONoSEQ START WITH 21 INCREMENT BY 1;
+
+Sequence created.
+
+SQL> SQL> execute StartUpAreaCodeFix
+
+PL/SQL procedure successfully completed.
+
+SQL> execute StartUpQuanCheck
+
+PL/SQL procedure successfully completed.
+
+SQL> SQL> start ShowData
+SQL> SELECT ProductID, TO_CHAR(RequestDate, 'DD-MON-YYYY HH:MI:SS') AS RequestDate, NormalQuan, ReorderQuan FROM ReOrder;
+
+ PRODUCTID REQUESTDATE                   N REORDERQUAN
+---------- ----------------------------- - -----------
+     10018 04-NOV-2015 10:00:28          T           5
+     10019 04-NOV-2015 10:00:28          T           5
+     10020 04-NOV-2015 10:00:28          T           5
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDateTime, 'DD-MON-YYYY HH:MI:SS') AS OrderDateTime, CustomerID, OrderTotalPrice FROM OrderLog;
+
+no rows selected
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDateTime, 'DD-MON-YYYY HH:MI:SS') AS OrderDateTime, CustomerID, ProductID, Quantity, ErrorMessage FROM ErrorLog;
+
+no rows selected
+
+SQL> 
+SQL> SELECT * FROM CustInvoice;
+
+no rows selected
+
+SQL> SELECT * FROM PhoneInfo;
+
+NAME                                                                   PHONE
+----------------------------------------------------------------- ----------
+Anil Kaul                                                         4316667070
+Asha Outdoor                                                      3125554678
+Betty Trumbell                                                    3125556670
+Branson Climbing Club                                             4444485676
+Cherokee Rafting Club                                             3147780870
+Hillside Mountain Club                                            3163397676
+Hillside Ski                                                      5556654959
+Jack Russell                                                      4448823434
+Sharon Stone                                                      4446668890
+Sheraton Recreation                                               2128889569
+Tiger Mountain                                                    5553327878
+Tom Wiley                                                         4448825560
+White Plains Club                                                 2126678090
+
+13 rows selected.
+
+SQL> SELECT * FROM ProductStock;
+
+ PRODUCTID PRODUCTNAME                      QUANINSTOCK
+---------- -------------------------------- -----------
+     10010 Beginner's Ski Boot                       20
+     10011 Intermediate Ski Boot                     18
+     10012 Pro Ski Boot                              21
+     10013 Beginner's Ski Pole                       15
+     10014 Intermediate Ski Pole                     20
+     10015 Pro Ski Pole                              21
+     10016 Road Bicycle                              15
+     10017 Mountain Bicycle                          19
+     10018 Tire Pump                                  8
+     10019 Water Bottle                              25
+     10020 Bicycle Tires                             30
+     10021 Bicycle Helmet                            23
+
+12 rows selected.
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDate, 'DD-MON-YYYY HH:MI:SS') AS OrderDate, TO_CHAR(ShipDate, 'DD-MON-YYYY HH:MI:SS') AS ShipDate, PaymentType FROM NewOrders;
+
+no rows selected
+
+SQL> 
+SQL> SELECT OrderID, ProductID, Quantity FROM NewOrderDetails;
+
+no rows selected
+
+SQL> 
+SQL> SELECT PONo, ProductID, TO_CHAR(PODate, 'DD-MON-YYYY HH:MI:SS') AS PODate FROM PurchaseOrder;
+
+PONO      PRODUCTID PODATE
+-------- ---------- -----------------------------
+PO11          10011 25-MAY-2015 12:00:00
+PO12          10015 12-MAY-2015 12:00:00
+PO13          10011 25-JUN-2015 12:00:00
+PO14          10018 25-JUN-2015 12:00:00
+PO15          10015 10-JUL-2015 12:00:00
+PO16          10019 21-JUL-2015 12:00:00
+PO21          10018 04-NOV-2015 10:00:28
+PO22          10019 04-NOV-2015 10:00:28
+PO23          10020 04-NOV-2015 10:00:28
+
+9 rows selected.
+
+SQL> SQL> start DoNewOrders
+SQL> execute OrderProcessing.Do1Order(101, 10010, 3, 10011, 5, 'CC');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(102, 10011, 12, 10010, 1,'Check');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(101, 10010, 1, 10012, 15, '');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(103, 10015, 17, 10021, 19,'CASH');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(107, 10010, 1, 10013,1,'CASH');
+BEGIN OrderProcessing.Do1Order(107, 10010, 1, 10013,1,'CASH'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(101, 10010, 100, 10014, 1,'CC');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(103, 10010, 1, 10014, 900, 'Cash');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(102, 99999, 1, 10014, 1,'FOOD');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(105, 10014, 1, 99999, 1, 'CC');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(103, 99999, 1, 10014, 100,'Check');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(104, 10012, 1000, 99343, 100,'CHECK');
+
+PL/SQL procedure successfully completed.
+
+SQL> execute OrderProcessing.Do1Order(443, 10012, 1, 42342, 5, 'CC');
+BEGIN OrderProcessing.Do1Order(443, 10012, 1, 42342, 5, 'CC'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(999, 32422, 4, 10015, 1, 'CC');
+BEGIN OrderProcessing.Do1Order(999, 32422, 4, 10015, 1, 'CC'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(322, 10012, 1000, 10015, 2,'Check');
+BEGIN OrderProcessing.Do1Order(322, 10012, 1000, 10015, 2,'Check'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(422, 10012, 1, 10015, 400, 'Cash');
+BEGIN OrderProcessing.Do1Order(422, 10012, 1, 10015, 400, 'Cash'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(110, 99999, 1, 10000, 1,'SFS');
+BEGIN OrderProcessing.Do1Order(110, 99999, 1, 10000, 1,'SFS'); END;
+
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (ALEC.SYS_C0011337) violated - parent key not
+found
+ORA-06512: at "ALEC.ORDERPROCESSING", line 10
+ORA-06512: at "ALEC.ORDERPROCESSING", line 65
+ORA-06512: at line 1
+
+
+SQL> execute OrderProcessing.Do1Order(103, 10015, 5, 10011, 1,'CC');
+
+PL/SQL procedure successfully completed.
+
+SQL> SQL> start ShowData
+SQL> SELECT ProductID, TO_CHAR(RequestDate, 'DD-MON-YYYY HH:MI:SS') AS RequestDate, NormalQuan, ReorderQuan FROM ReOrder;
+
+ PRODUCTID REQUESTDATE                   N REORDERQUAN
+---------- ----------------------------- - -----------
+     10018 04-NOV-2015 10:00:28          T           5
+     10019 04-NOV-2015 10:00:28          T           5
+     10020 04-NOV-2015 10:00:28          T           5
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDateTime, 'DD-MON-YYYY HH:MI:SS') AS OrderDateTime, CustomerID, OrderTotalPrice FROM OrderLog;
+
+   ORDERID ORDERDATETIME                 CUSTOMERID ORDERTOTALPRICE
+---------- ----------------------------- ---------- ---------------
+      2001 04-NOV-2015 10:00:28                 101           22.74
+      2002 04-NOV-2015 10:00:28                 102           22.74
+      2003 04-NOV-2015 10:00:28                 101           25.24
+      2004 04-NOV-2015 10:00:28                 103           45.94
+      2017 04-NOV-2015 10:00:28                 103           47.98
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDateTime, 'DD-MON-YYYY HH:MI:SS') AS OrderDateTime, CustomerID, ProductID, Quantity, ErrorMessage FROM ErrorLog;
+
+   ORDERID ORDERDATETIME                 CUSTOMERID  PRODUCTID   QUANTITY
+---------- ----------------------------- ---------- ---------- ----------
+ERRORMESSAGE
+----------------------------------------------------------------
+      2006 04-NOV-2015 10:00:28                 101      10010        100
+ Insufficient quantity in stock.
+
+      2007 04-NOV-2015 10:00:28                 103      10014        900
+ Insufficient quantity in stock.
+
+      2008 04-NOV-2015 10:00:28                 102
+ Bad product 99999
+
+      2009 04-NOV-2015 10:00:28                 105
+ Bad product 99999
+
+      2010 04-NOV-2015 10:00:28                 103
+ Bad product 99999
+
+      2011 04-NOV-2015 10:00:28                 104      10012       1000
+ Insufficient quantity in stock.
+
+
+6 rows selected.
+
+SQL> 
+SQL> SELECT * FROM CustInvoice;
+
+ INVOICENO     CUSTNO CUSTNAME        STREET                           ZIP
+---------- ---------- --------------- ------------------------- ----------
+       103        101 Jack Russell    25 North Madison Ave           65807
+       104        103 Anil Kaul       400 South Circle St.           64530
+       106        101 Jack Russell    25 North Madison Ave           65807
+       107        103 Anil Kaul       400 South Circle St.           64530
+       108        102 Betty Trumbell  550 South Court Dr.            63140
+       109        105 Sharon Stone    200 West Wagner St.            65807
+       101        101 Jack Russell    25 North Madison Ave           65807
+       102        102 Betty Trumbell  550 South Court Dr.            63140
+       110        103 Anil Kaul       400 South Circle St.           64530
+       111        104 Tom Wiley       1500 North Grand St.           65810
+       117        103 Anil Kaul       400 South Circle St.           64530
+
+11 rows selected.
+
+SQL> SELECT * FROM PhoneInfo;
+
+NAME                                                                   PHONE
+----------------------------------------------------------------- ----------
+Anil Kaul                                                         4316667070
+Asha Outdoor                                                      3125554678
+Betty Trumbell                                                    3125556670
+Branson Climbing Club                                             4444485676
+Cherokee Rafting Club                                             3147780870
+Hillside Mountain Club                                            3163397676
+Hillside Ski                                                      5556654959
+Jack Russell                                                      4448823434
+Sharon Stone                                                      4446668890
+Sheraton Recreation                                               2128889569
+Tiger Mountain                                                    5553327878
+Tom Wiley                                                         4448825560
+White Plains Club                                                 2126678090
+
+13 rows selected.
+
+SQL> SELECT * FROM ProductStock;
+
+ PRODUCTID PRODUCTNAME                      QUANINSTOCK
+---------- -------------------------------- -----------
+     10010 Beginner's Ski Boot                       20
+     10011 Intermediate Ski Boot                     18
+     10012 Pro Ski Boot                              21
+     10013 Beginner's Ski Pole                       15
+     10014 Intermediate Ski Pole                     20
+     10015 Pro Ski Pole                              21
+     10016 Road Bicycle                              15
+     10017 Mountain Bicycle                          19
+     10018 Tire Pump                                  8
+     10019 Water Bottle                              25
+     10020 Bicycle Tires                             30
+     10021 Bicycle Helmet                            23
+
+12 rows selected.
+
+SQL> 
+SQL> SELECT OrderID, TO_CHAR(OrderDate, 'DD-MON-YYYY HH:MI:SS') AS OrderDate, TO_CHAR(ShipDate, 'DD-MON-YYYY HH:MI:SS') AS ShipDate, PaymentType FROM NewOrders;
+
+   ORDERID ORDERDATE                     SHIPDATE                      PAYMENTT
+---------- ----------------------------- ----------------------------- --------
+      2001 04-NOV-2015 10:00:28                                        CC
+      2002 04-NOV-2015 10:00:28                                        Check
+      2003 04-NOV-2015 10:00:28
+      2004 04-NOV-2015 10:00:28                                        CASH
+      2006 04-NOV-2015 10:00:28                                        CC
+      2007 04-NOV-2015 10:00:28                                        Cash
+      2008 04-NOV-2015 10:00:28                                        FOOD
+      2009 04-NOV-2015 10:00:28                                        CC
+      2010 04-NOV-2015 10:00:28                                        Check
+      2011 04-NOV-2015 10:00:28                                        CHECK
+      2017 04-NOV-2015 10:00:28                                        CC
+
+11 rows selected.
+
+SQL> 
+SQL> SELECT OrderID, ProductID, Quantity FROM NewOrderDetails;
+
+   ORDERID  PRODUCTID   QUANTITY
+---------- ---------- ----------
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+      1001      10011          2
+      1001      10015          3
+      1002      10011          5
+      1002      10016          2
+      1003      10019          5
+      1004      10018          3
+      1004      10011          1
+      1004      10019          3
+      1005      10017          1
+      1005      10019          1
+      1005      10021          1
+      1006      10012          4
+      1006      10015          2
+      2001      10010          3
+      2001      10011          5
+      2002      10011         12
+      2002      10010          1
+      2003      10010          1
+      2003      10012         15
+      2004      10015         17
+      2004      10021         19
+      2017      10015          5
+      2017      10011          1
+
+253 rows selected.
+
+SQL> 
+SQL> SELECT PONo, ProductID, TO_CHAR(PODate, 'DD-MON-YYYY HH:MI:SS') AS PODate FROM PurchaseOrder;
+
+PONO      PRODUCTID PODATE
+-------- ---------- -----------------------------
+PO11          10011 25-MAY-2015 12:00:00
+PO12          10015 12-MAY-2015 12:00:00
+PO13          10011 25-JUN-2015 12:00:00
+PO14          10018 25-JUN-2015 12:00:00
+PO15          10015 10-JUL-2015 12:00:00
+PO16          10019 21-JUL-2015 12:00:00
+PO21          10018 04-NOV-2015 10:00:28
+PO22          10019 04-NOV-2015 10:00:28
+PO23          10020 04-NOV-2015 10:00:28
+
+9 rows selected.
+
+SQL> SQL> 
+SQL> spool off

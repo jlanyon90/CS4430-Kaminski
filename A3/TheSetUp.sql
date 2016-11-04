@@ -1,0 +1,6 @@
+start DropTables
+start SchemaSetUp
+start OtherTablesViewsSetUp
+start OrderProcessingDef
+start StartUpProcsDef
+start OrderTriggerDef

@@ -1,0 +1,7 @@
+-- Line from product to in inventory should be double, inventory to in_inventory single (inventory can have many products, but a single product is only in one inventory)
+
+-- should online store be connected to inventory and not cart (you can browse inventory without buying anything)
+
+-- is the picture attached to online store that of the Product( if so should it not be on the individual product rather than the site as a whole)
+
+-- 

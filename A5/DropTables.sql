@@ -1,0 +1,9 @@
+DROP TABLE OrderDetails;
+DROP TABLE PurchaseOrder;
+DROP TABLE Member;
+DROP TABLE Club;
+DROP TABLE ProductOrder;
+DROP TABLE Product;
+DROP TABLE Supplier;
+DROP TABLE Customer;
+DROP TABLE Zipcode;

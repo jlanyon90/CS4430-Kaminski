@@ -1,0 +1,17 @@
+execute OrderProcessing.Do1Order(101, 10010, 3, 10011, 5, 'CC');
+execute OrderProcessing.Do1Order(102, 10011, 12, 10010, 1,'Check');
+execute OrderProcessing.Do1Order(101, 10010, 1, 10012, 15, '');
+execute OrderProcessing.Do1Order(103, 10015, 17, 10021, 19,'CASH');
+execute OrderProcessing.Do1Order(107, 10010, 1, 10013,1,'CASH');
+execute OrderProcessing.Do1Order(101, 10010, 100, 10014, 1,'CC');
+execute OrderProcessing.Do1Order(103, 10010, 1, 10014, 900, 'Cash');
+execute OrderProcessing.Do1Order(102, 99999, 1, 10014, 1,'FOOD');
+execute OrderProcessing.Do1Order(105, 10014, 1, 99999, 1, 'CC');
+execute OrderProcessing.Do1Order(103, 99999, 1, 10014, 100,'Check');
+execute OrderProcessing.Do1Order(104, 10012, 1000, 99343, 100,'CHECK');
+execute OrderProcessing.Do1Order(443, 10012, 1, 42342, 5, 'CC');
+execute OrderProcessing.Do1Order(999, 32422, 4, 10015, 1, 'CC');
+execute OrderProcessing.Do1Order(322, 10012, 1000, 10015, 2,'Check');
+execute OrderProcessing.Do1Order(422, 10012, 1, 10015, 400, 'Cash');
+execute OrderProcessing.Do1Order(110, 99999, 1, 10000, 1,'SFS');
+execute OrderProcessing.Do1Order(103, 10015, 5, 10011, 1,'CC');

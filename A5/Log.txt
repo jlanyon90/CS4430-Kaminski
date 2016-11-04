@@ -1,0 +1,248 @@
+											 Justin Lanyon & James Dilts
+Logging started.
+Connection Opened.
+********Before View********
+SELECT * FROM Product ORDER BY ProductID
+
+            PRODUCTID	          PRODUCTNAME	          QUANINSTOCK	         REORDERPOINT	                PRICE	           SUPPLIERID	          REORDERQUAN
+                10010	  Beginner's Ski Boot	                   20	                    5	                 9.75	                 S500	                   25
+                10011	Intermediate Ski Boot	                   18	                    5	                12.99	                 S500	                   20
+                10012	         Pro Ski Boot	                   21	                    7	                15.49	                 S510	                   25
+                10013	  Beginner's Ski Pole	                   15	                    3	                25.49	                 S500	                   20
+                10014	Intermediate Ski Pole	                   20	                    3	                29.99	                 S520	                   22
+                10015	         Pro Ski Pole	                   21	                    5	                34.99	                 S530	                   25
+                10016	         Road Bicycle	                   15	                    4	                34.95	                 S520	                   18
+                10017	     Mountain Bicycle	                   19	                    4	                49.99	                 S520	                   20
+                10018	            Tire Pump	                    8	                    2	                 7.99	                 S530	                   10
+                10019	         Water Bottle	                   25	                    4	                 2.49	                 S510	                   25
+                10020	        Bicycle Tires	                   30	                    5	                 4.99	                 S500	                   33
+                10021	       Bicycle Helmet	                   23	                    6	                10.95	                 S510	                   25
+
+SELECT PONo, ProductID FROM PurchaseOrder ORDER BY PONo
+
+                 PONO	            PRODUCTID
+                 PO11	                10011
+                 PO12	                10015
+                 PO13	                10011
+                 PO14	                10018
+                 PO15	                10015
+                 PO16	                10019
+
+SELECT * FROM OrderDetails ORDER BY OrderID, ProductID
+
+              ORDERID	            PRODUCTID	             QUANTITY
+                 1001	                10011	                    2
+                 1001	                10015	                    3
+                 1002	                10011	                    5
+                 1002	                10016	                    2
+                 1003	                10019	                    5
+                 1004	                10011	                    1
+                 1004	                10018	                    3
+                 1004	                10019	                    3
+                 1005	                10017	                    1
+                 1005	                10019	                    1
+                 1005	                10021	                    1
+                 1006	                10012	                    4
+                 1006	                10015	                    2
+
+SELECT SupplierID, Name FROM Supplier ORDER BY SupplierID
+
+           SUPPLIERID	                 NAME
+                 S500	         Hillside Ski
+                 S510	       Tiger Mountain
+                 S520	         Asha Outdoor
+                 S530	  Sheraton Recreation
+                 S540	           NY Winters
+
+********End Before View********
+SELECT * FROM Product ORDER BY ProductName
+
+            PRODUCTID	          PRODUCTNAME	          QUANINSTOCK	         REORDERPOINT	                PRICE	           SUPPLIERID	          REORDERQUAN
+                10010	  Beginner's Ski Boot	                   20	                    5	                 9.75	                 S500	                   25
+                10013	  Beginner's Ski Pole	                   15	                    3	                25.49	                 S500	                   20
+                10021	       Bicycle Helmet	                   23	                    6	                10.95	                 S510	                   25
+                10020	        Bicycle Tires	                   30	                    5	                 4.99	                 S500	                   33
+                10011	Intermediate Ski Boot	                   18	                    5	                12.99	                 S500	                   20
+                10014	Intermediate Ski Pole	                   20	                    3	                29.99	                 S520	                   22
+                10017	     Mountain Bicycle	                   19	                    4	                49.99	                 S520	                   20
+                10012	         Pro Ski Boot	                   21	                    7	                15.49	                 S510	                   25
+                10015	         Pro Ski Pole	                   21	                    5	                34.99	                 S530	                   25
+                10016	         Road Bicycle	                   15	                    4	                34.95	                 S520	                   18
+                10018	            Tire Pump	                    8	                    2	                 7.99	                 S530	                   10
+                10019	         Water Bottle	                   25	                    4	                 2.49	                 S510	                   25
+
+
+
+INSERT INTO Product VALUES (10025,'IPOD',20,5,149.99,'S500',20)
+>> OK, product Added
+
+INSERT INTO Product VALUES (10025,'IPAD',20,5,499.99,'S500',20)
+>> ERROR: existing ProductID
+
+INSERT INTO Product VALUES (10026,'ZUNE',20,5,199.95,'S500',20)
+>> OK, product Added
+
+INSERT INTO Product VALUES (10027,'GPS',20,5,399.99,'S540',20)
+>> OK, product Added
+
+UPDATE Product SET QuanInStock = QuanInStock +  30 WHERE ProductID = 10010
+>> OK, product Updated
+
+UPDATE Product SET QuanInStock = QuanInStock +  10 WHERE ProductID = 10010
+>> OK, product Updated
+
+UPDATE Product SET QuanInStock = QuanInStock +  17 WHERE ProductID = 10011
+>> OK, product Updated
+
+UPDATE Product SET QuanInStock = QuanInStock +  5 WHERE ProductID = 10025
+>> OK, product Updated
+
+SELECT * FROM Product ORDER BY ProductName
+
+            PRODUCTID	          PRODUCTNAME	          QUANINSTOCK	         REORDERPOINT	                PRICE	           SUPPLIERID	          REORDERQUAN
+                10010	  Beginner's Ski Boot	                   60	                    5	                 9.75	                 S500	                   25
+                10013	  Beginner's Ski Pole	                   15	                    3	                25.49	                 S500	                   20
+                10021	       Bicycle Helmet	                   23	                    6	                10.95	                 S510	                   25
+                10020	        Bicycle Tires	                   30	                    5	                 4.99	                 S500	                   33
+                10027	                  GPS	                   20	                    5	               399.99	                 S540	                   20
+                10025	                 IPOD	                   25	                    5	               149.99	                 S500	                   20
+                10011	Intermediate Ski Boot	                   35	                    5	                12.99	                 S500	                   20
+                10014	Intermediate Ski Pole	                   20	                    3	                29.99	                 S520	                   22
+                10017	     Mountain Bicycle	                   19	                    4	                49.99	                 S520	                   20
+                10012	         Pro Ski Boot	                   21	                    7	                15.49	                 S510	                   25
+                10015	         Pro Ski Pole	                   21	                    5	                34.99	                 S530	                   25
+                10016	         Road Bicycle	                   15	                    4	                34.95	                 S520	                   18
+                10018	            Tire Pump	                    8	                    2	                 7.99	                 S530	                   10
+                10019	         Water Bottle	                   25	                    4	                 2.49	                 S510	                   25
+                10026	                 ZUNE	                   20	                    5	               199.95	                 S500	                   20
+
+
+
+Select OrderId, Quantity from OrderDetails WHERE ProductID = 10018
+
+              ORDERID	             QUANTITY
+                 1004	                    3
+
+DELETE FROM OrderDetails WHERE ProductID = 10018
+>> OK, product Deleted
+
+DELETE FROM Product WHERE ProductID = 10018
+>> OK, product Deleted
+
+Select OrderId, Quantity from OrderDetails WHERE ProductID = 10019
+
+              ORDERID	             QUANTITY
+                 1003	                    5
+                 1004	                    3
+                 1005	                    1
+
+DELETE FROM OrderDetails WHERE ProductID = 10019
+>> OK, product Deleted
+
+DELETE FROM Product WHERE ProductID = 10019
+>> OK, product Deleted
+
+Select OrderId, Quantity from OrderDetails WHERE ProductID = 10016
+
+              ORDERID	             QUANTITY
+                 1002	                    2
+
+DELETE FROM OrderDetails WHERE ProductID = 10016
+>> OK, product Deleted
+
+DELETE FROM Product WHERE ProductID = 10016
+>> OK, product Deleted
+
+Select OrderId, Quantity from OrderDetails WHERE ProductID = 10025
+
+
+No rows selected
+
+DELETE FROM OrderDetails WHERE ProductID = 10025
+SORRY, no rows changed
+
+DELETE FROM Product WHERE ProductID = 10025
+>> OK, product Deleted
+
+Select OrderId, Quantity from OrderDetails WHERE ProductID = 10010
+
+
+No rows selected
+
+DELETE FROM OrderDetails WHERE ProductID = 10010
+SORRY, no rows changed
+
+DELETE FROM Product WHERE ProductID = 10010
+>> OK, product Deleted
+
+INSERT INTO Product VALUES (10010,'DELL',20,5,599.50,'S540',20)
+>> OK, product Added
+
+UPDATE Product SET QuanInStock = QuanInStock +  14 WHERE ProductID = 10010
+>> OK, product Updated
+
+SELECT * FROM Product ORDER BY ProductName
+
+            PRODUCTID	          PRODUCTNAME	          QUANINSTOCK	         REORDERPOINT	                PRICE	           SUPPLIERID	          REORDERQUAN
+                10013	  Beginner's Ski Pole	                   15	                    3	                25.49	                 S500	                   20
+                10021	       Bicycle Helmet	                   23	                    6	                10.95	                 S510	                   25
+                10020	        Bicycle Tires	                   30	                    5	                 4.99	                 S500	                   33
+                10010	                 DELL	                   34	                    5	                599.5	                 S540	                   20
+                10027	                  GPS	                   20	                    5	               399.99	                 S540	                   20
+                10011	Intermediate Ski Boot	                   35	                    5	                12.99	                 S500	                   20
+                10014	Intermediate Ski Pole	                   20	                    3	                29.99	                 S520	                   22
+                10017	     Mountain Bicycle	                   19	                    4	                49.99	                 S520	                   20
+                10012	         Pro Ski Boot	                   21	                    7	                15.49	                 S510	                   25
+                10015	         Pro Ski Pole	                   21	                    5	                34.99	                 S530	                   25
+                10026	                 ZUNE	                   20	                    5	               199.95	                 S500	                   20
+
+
+
+********After View********
+SELECT * FROM Product ORDER BY ProductID
+
+            PRODUCTID	          PRODUCTNAME	          QUANINSTOCK	         REORDERPOINT	                PRICE	           SUPPLIERID	          REORDERQUAN
+                10010	                 DELL	                   34	                    5	                599.5	                 S540	                   20
+                10011	Intermediate Ski Boot	                   35	                    5	                12.99	                 S500	                   20
+                10012	         Pro Ski Boot	                   21	                    7	                15.49	                 S510	                   25
+                10013	  Beginner's Ski Pole	                   15	                    3	                25.49	                 S500	                   20
+                10014	Intermediate Ski Pole	                   20	                    3	                29.99	                 S520	                   22
+                10015	         Pro Ski Pole	                   21	                    5	                34.99	                 S530	                   25
+                10017	     Mountain Bicycle	                   19	                    4	                49.99	                 S520	                   20
+                10020	        Bicycle Tires	                   30	                    5	                 4.99	                 S500	                   33
+                10021	       Bicycle Helmet	                   23	                    6	                10.95	                 S510	                   25
+                10026	                 ZUNE	                   20	                    5	               199.95	                 S500	                   20
+                10027	                  GPS	                   20	                    5	               399.99	                 S540	                   20
+
+SELECT PONo, ProductID FROM PurchaseOrder ORDER BY PONo
+
+                 PONO	            PRODUCTID
+                 PO11	                10011
+                 PO12	                10015
+                 PO13	                10011
+                 PO15	                10015
+
+SELECT * FROM OrderDetails ORDER BY OrderID, ProductID
+
+              ORDERID	            PRODUCTID	             QUANTITY
+                 1001	                10011	                    2
+                 1001	                10015	                    3
+                 1002	                10011	                    5
+                 1004	                10011	                    1
+                 1005	                10017	                    1
+                 1005	                10021	                    1
+                 1006	                10012	                    4
+                 1006	                10015	                    2
+
+SELECT SupplierID, Name FROM Supplier ORDER BY SupplierID
+
+           SUPPLIERID	                 NAME
+                 S500	         Hillside Ski
+                 S510	       Tiger Mountain
+                 S520	         Asha Outdoor
+                 S530	  Sheraton Recreation
+                 S540	           NY Winters
+
+********End After View********
+
+Connection closed.
